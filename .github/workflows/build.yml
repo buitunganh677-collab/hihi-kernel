@@ -1,0 +1,44 @@
+name: Build A16 Kernel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+        build-essential \
+        bc \
+        bison \
+        flex \
+        libssl-dev \
+        libncurses-dev \
+        gcc-aarch64-linux-gnu
+
+    - name: Build kernel
+      run: |
+        export ARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+
+        make a16_00_defconfig
+        make -j$(nproc)
+
+    - name: Upload kernel
+      uses: actions/upload-artifact@v3
+      with:
+        name: kernel
+        path: |
+          arch/arm64/boot/Image*
+          arch/arm64/boot/dtb*
+          arch/arm64/boot/dts/*
